@@ -1,6 +1,6 @@
 # survos/flickr-bundle
 
-A Symfony bundle that wraps samwilson/phpflickr library.
+A Symfony bundle that wraps flickr library at https://github.com/samwilson/phpflickr
 
 ## Installation
 

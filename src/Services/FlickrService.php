@@ -13,10 +13,15 @@ class FlickrService extends PhpFlickr
 {
     protected PhpFlickr $flickr;
     public function __construct(
-        private string $apiKey,
-        private string $apiSecret,
+        string $apiKey,
+        string $secret,
+        int|\DateInterval|null $cacheExpiration = null,
     ) {
-        parent::__construct($this->apiKey, $this->apiSecret);
+        parent::__construct($apiKey, $secret);
+
+        if ($cacheExpiration) {
+            $this->setCacheDefaultExpiry($cacheExpiration);
+        }
 //        $this->flickr = new \Samwilson\PhpFlickr\PhpFlickr($apiKey, $apiSecret);
         $storage = new Memory();
 // Create the access token from the strings you acquired before.

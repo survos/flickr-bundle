@@ -4,36 +4,32 @@
 
 namespace Survos\FlickrBundle;
 
+use Survos\BarcodeBundle\Twig\BarcodeTwigExtension;
 use Survos\FlickrBundle\Services\FlickrService;
+use Survos\FlickrBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Symfony\Component\VarExporter\Internal\Reference;
 
 class SurvosFlickrBundle extends AbstractBundle
 {
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        $definition = $builder->autowire(FlickrService::class)
+        $builder->autowire(FlickrService::class)
             ->setAutowired(true)
             ->setAutoconfigured(true)
             ->setArgument('$apiKey', $config['api_key'])
             ->setArgument('$secret', $config['secret'])
         ;
 
-        // $builder->setParameter('survos_workflow.direction', $config['direction']);
+        $builder
+            ->autowire('survos.flickr_twig', TwigExtension::class)
+            ->addTag('twig.extension')
+//            ->setArgument('$flickrService', new Reference(FlickrService::class))
+        ;
 
-        // twig classes
-
-        /*
-        $definition = $builder
-        ->autowire('survos.barcode_twig', BarcodeTwigExtension::class)
-        ->addTag('twig.extension');
-
-        $definition->setArgument('$widthFactor', $config['widthFactor']);
-        $definition->setArgument('$height', $config['height']);
-        $definition->setArgument('$foregroundColor', $config['foregroundColor']);
-        */
     }
 
     public function configure(DefinitionConfigurator $definition): void
