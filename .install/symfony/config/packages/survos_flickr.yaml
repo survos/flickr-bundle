@@ -1,0 +1,4 @@
+survos_flickr:
+  #  auth_menu: true
+  api_key: '%env(FLICKR_API_KEY)%'
+  secret: '%env(FLICKR_SECRET)%'

@@ -26,6 +26,12 @@
         "symfony/framework-bundle": "^6.4 || ^7.0",
         "symfony/phpunit-bridge": "^6.4 || ^7.0",
         "symfony/twig-bundle": "^6.4 || ^7.0",
-        "symfony/var-dumper": "^6.4 || ^7.0"
+        "symfony/var-dumper": "^6.4 || ^7.0",
+        "endroid/installer": "^1.4"
+    },
+    "config": {
+        "allow-plugins": {
+            "endroid/installer": true
+        }
     }
 }

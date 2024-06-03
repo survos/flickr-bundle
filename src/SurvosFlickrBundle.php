@@ -4,6 +4,7 @@
 
 namespace Survos\FlickrBundle;
 
+use Survos\FlickrBundle\Services\FlickrService;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -13,6 +14,13 @@ class SurvosFlickrBundle extends AbstractBundle
 {
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        $definition = $builder->autowire(FlickrService::class)
+            ->setAutowired(true)
+            ->setAutoconfigured(true)
+            ->setArgument('$apiKey', $config['api_key'])
+            ->setArgument('$secret', $config['secret'])
+        ;
+
         // $builder->setParameter('survos_workflow.direction', $config['direction']);
 
         // twig classes
