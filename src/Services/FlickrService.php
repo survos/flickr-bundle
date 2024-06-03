@@ -23,17 +23,11 @@ class FlickrService extends PhpFlickr
             $this->setCacheDefaultExpiry($cacheExpiration);
         }
 //        $this->flickr = new \Samwilson\PhpFlickr\PhpFlickr($apiKey, $apiSecret);
-        $storage = new Memory();
-// Create the access token from the strings you acquired before.
-        $token = new StdOAuth1Token();
-// Add the token to the storage.
-        $storage->storeAccessToken('Flickr', $token);
+//        $storage = new Memory();
+//// Create the access token from the strings you acquired before.
+//        $token = new StdOAuth1Token();
+//// Add the token to the storage.
+//        $storage->storeAccessToken('Flickr', $token);
     }
-
-    public function getFlickr(): PhpFlickr
-    {
-        return $this;
-    }
-
 
 }
