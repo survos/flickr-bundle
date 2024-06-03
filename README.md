@@ -2,6 +2,14 @@
 
 A Symfony bundle that wraps flickr library at https://github.com/samwilson/phpflickr
 
+In addition to putting the api key and secret in environment variables, there are 2 twig functions that make getting the thumbnail and the photo page easy.  Note that if you embed the thumbnail in a webpage, you are required (by their terms of service) to provide a link to the photo page on Flickr.
+
+```twig
+   {% set url = flickrThumbnailUrl(photo) %}
+        <figure class="figure">
+            <a href="{{ flickrPageUrl(photo) }}" target="_blank">
+```
+
 ## Installation
 
 ```bash
@@ -15,7 +23,7 @@ symfony new flickr-demo --webapp && cd flickr-demo
 composer config extra.symfony.allow-contrib true
 cat > .env.local <<END
 FLICKR_API_KEY=the-key
-FLICKR_SECRET=a-secret
+FLICKR_SECRET=the-secret
 END
 composer require survos/flickr-bundle
 ```
