@@ -25,8 +25,8 @@ class TwigExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('flickrPageUrl',
-                [$this, 'flickrPageUrl']),
+            new TwigFunction('flickrAlbumUrl', [$this, 'flickrAlbumUrl']),
+            new TwigFunction('flickrPageUrl', [$this, 'flickrPageUrl']),
             new TwigFunction('flickrThumbnailUrl',
                 [$this, 'flickrThumbnailUrl']),
             //            new TwigFunction('function_name', [::class, 'doSomething']),
@@ -36,6 +36,10 @@ class TwigExtension extends AbstractExtension
     public function flickrPageUrl(array $record)
     {
         return sprintf('https://www.flickr.com/photo.gne?id=%s', $record['id']);
+    }
+    public function flickrAlbumUrl(array $album)
+    {
+        return sprintf('https://www.flickr.com/photos/%s/albums/%s', $album['username'], $album['id']);
     }
     public function flickrThumbnailUrl(array $record, string $size='m', string $format = 'jpg')
     {
