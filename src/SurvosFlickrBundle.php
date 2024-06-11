@@ -9,9 +9,10 @@ use Survos\FlickrBundle\Services\FlickrService;
 use Survos\FlickrBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-use Symfony\Component\VarExporter\Internal\Reference;
 
 class SurvosFlickrBundle extends AbstractBundle
 {
@@ -22,6 +23,16 @@ class SurvosFlickrBundle extends AbstractBundle
             ->setAutoconfigured(true)
             ->setArgument('$apiKey', $config['api_key'])
             ->setArgument('$secret', $config['secret'])
+            ->setArgument('$cacheExpiration', $config['cache_expiration'])
+            ->setArgument(
+                '$requestStack',
+                new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE)
+            )
+            ->setArgument(
+                '$security',
+                new Reference('security.helper', ContainerInterface::NULL_ON_INVALID_REFERENCE)
+            );
+
         ;
 
         $builder
@@ -38,6 +49,7 @@ class SurvosFlickrBundle extends AbstractBundle
             ->children()
             ->scalarNode('api_key')->defaultValue('')->end()
             ->scalarNode('secret')->defaultValue('')->end()
+            ->scalarNode('cache_expiration')->defaultValue(3600)->end()
             ->end();
     }
 }
