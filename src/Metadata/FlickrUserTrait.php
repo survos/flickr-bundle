@@ -11,6 +11,9 @@ trait FlickrUserTrait
     private ?string $flickrUserId = null; // e.g. "26016159@N00"
 
     #[ORM\Column(length: 255, nullable: true)]
+    private ?string $flickrUsername = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $flickrKey = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -49,6 +52,18 @@ trait FlickrUserTrait
     public function setFlickrUserId(?string $flickrUserId): self
     {
         $this->flickrUserId = $flickrUserId;
+        return $this;
+    }
+
+
+    public function getFlickrUsername(): ?string
+    {
+        return $this->flickrUsername;
+    }
+
+    public function setFlickrUsername(?string $flickrUsername): FlickrUserTrait
+    {
+        $this->flickrUsername = $flickrUsername;
         return $this;
     }
 
