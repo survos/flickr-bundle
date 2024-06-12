@@ -27,6 +27,7 @@ class FlickrService extends PhpFlickr
     ) {
         parent::__construct($apiKey, $secret);
 
+
         if ($cacheExpiration) {
             $this->setCacheDefaultExpiry($cacheExpiration);
         }
@@ -41,13 +42,17 @@ class FlickrService extends PhpFlickr
 //        $storage->storeAccessToken('Flickr', $token);
     }
 
-    public function authenticate(): self
+    public function authenticate(?string $key = null, ?string $secret = null): self
     {
         /** @var FlickrUserInterface $user */
         if ($this->security && ($user = $this->security->getUser()) && $user->getFlickrKey()) {
+            $key = $user->getFlickrKey();
+            $secret = $user->getFlickrSecret();
+        }
+        if ($key) {
             $token = new StdOAuth1Token();
-            $token->setAccessToken($user->getFlickrKey());
-            $token->setAccessTokenSecret($user->getFlickrSecret());
+            $token->setAccessToken($key);
+            $token->setAccessTokenSecret($secret);
             $storage = new Session();
             $storage->storeAccessToken('Flickr', $token);
             $this->setOauthStorage($storage);
