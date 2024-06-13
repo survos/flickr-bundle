@@ -45,7 +45,7 @@ class FlickrService extends PhpFlickr
     public function authenticate(?string $key = null, ?string $secret = null): self
     {
         /** @var FlickrUserInterface $user */
-        if ($this->security && ($user = $this->security->getUser()) && $user->getFlickrKey()) {
+        if ($this->security && ($user = $this->security->getUser()) && method_exists($user, 'getFlickrKey') && $user->getFlickrKey()) {
             $key = $user->getFlickrKey();
             $secret = $user->getFlickrSecret();
         }
