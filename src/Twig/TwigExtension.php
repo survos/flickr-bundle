@@ -33,16 +33,23 @@ class TwigExtension extends AbstractExtension
         ];
     }
 
-    public function flickrPageUrl(array $record)
+    public function flickrPageUrl(array|object|int|string $record)
     {
-        return sprintf('https://www.flickr.com/photo.gne?id=%s', $record['id']);
+        if (is_object($record)) {
+            $record = (array)$record;
+        }
+        return sprintf('https://www.flickr.com/photo.gne?id=%s', is_array($record) ? $record['id']: $record);
     }
     public function flickrAlbumUrl(array $album)
     {
         return sprintf('https://www.flickr.com/photos/%s/albums/%s', $album['username'], $album['id']);
     }
-    public function flickrThumbnailUrl(array $record, string $size='m', string $format = 'jpg')
+    public function flickrThumbnailUrl(array|object $record, string $size='m', string $format = 'jpg')
     {
+        if (is_object($record)) {
+            $record = (array)$record;
+        }
+
 //        https://live.staticflickr.com/{server-id}/{id}_{o-secret}_o.{o-format}
 //        https://www.flickr.com/services/api/misc.urls.html
 //        You can also use s,q,t for cropped squares,

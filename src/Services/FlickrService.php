@@ -60,4 +60,19 @@ class FlickrService extends PhpFlickr
 
         return $this;
     }
+
+    /**
+     * Returns a license based on string from common license agreements
+     *
+     * @param string $license
+     * @return int
+     */
+    public function getLicenseId(string $license): int
+    {
+
+        return match(strtoupper($license)) {
+            'CC0' => 9,
+        };
+
+    }
 }
