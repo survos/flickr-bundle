@@ -69,9 +69,12 @@ class FlickrService extends PhpFlickr
      */
     public function getLicenseId(string $license): int
     {
-
+        // https://gitea.armuli.eu/museum-digital/MDAllowedValueSets/src/branch/master/src/MDLicensesSet.php
+        // https://mus.wip/flickr-licenses.json
         return match(strtoupper($license)) {
             'CC0' => 9,
+            'CC BY-NC-SA' => 1, // "https://creativecommons.org/licenses/by-nc-sa/2.0/"
+            default => assert(false, "Missing $license")
         };
 
     }
