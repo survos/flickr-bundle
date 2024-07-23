@@ -22,7 +22,6 @@ class FlickrService extends PhpFlickr
         string $apiKey,
         string $secret,
         private ?Security $security,
-        private RequestStack $requestStack,
         int|\DateInterval|null $cacheExpiration = null,
     ) {
         parent::__construct($apiKey, $secret);
@@ -83,4 +82,10 @@ class FlickrService extends PhpFlickr
         };
 
     }
+
+    public function uploader(): Uploader
+    {
+        return new Uploader($this);
+    }
+
 }

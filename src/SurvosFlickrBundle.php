@@ -24,10 +24,11 @@ class SurvosFlickrBundle extends AbstractBundle
             ->setArgument('$apiKey', $config['api_key'])
             ->setArgument('$secret', $config['secret'])
             ->setArgument('$cacheExpiration', $config['cache_expiration'])
-            ->setArgument(
-                '$requestStack',
-                new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE)
-            )
+            // this may have existed for the session?
+//            ->setArgument(
+//                '$requestStack',
+//                new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE)
+//            )
             ->setArgument(
                 '$security',
                 new Reference('security.helper', ContainerInterface::NULL_ON_INVALID_REFERENCE)
