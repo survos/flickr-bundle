@@ -77,6 +77,7 @@ class FlickrService extends PhpFlickr
         // https://mus.wip/flickr-licenses.json
         return match(strtoupper($license)) {
             'CC0' => 9,
+            'CC-BY-SA',
             'CC BY-NC-SA' => 1, // "https://creativecommons.org/licenses/by-nc-sa/2.0/"
             default => assert(false, "Missing $license")
         };
