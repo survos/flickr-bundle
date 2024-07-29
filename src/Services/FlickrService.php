@@ -65,6 +65,38 @@ class FlickrService extends PhpFlickr
         return $this;
     }
 
+    public function flickrThumbnailUrl(array|object $record, string $size='m', string $format = 'jpg'): string
+    {
+        if (is_object($record)) {
+            $record = (array)$record;
+        }
+//        https://live.staticflickr.com/{server-id}/{id}_{o-secret}_o.{o-format}
+//        https://www.flickr.com/services/api/misc.urls.html
+//        You can also use s,q,t for cropped squares,
+// m=240,n=320,w=400 for small, z=620,c=800 for medium, and b=1024 for large.
+        return sprintf('https://live.staticflickr.com/%s/%s_%s_%s.%s',
+            $record['server'],
+            $record['id'],
+            $record['secret'],
+            $size,
+            $format
+        );
+    }
+
+    public function flickrPageUrl(array|object|int|string $record)
+    {
+        if (is_object($record)) {
+            $record = (array)$record;
+        }
+        return sprintf('https://www.flickr.com/photo.gne?id=%s', is_array($record) ? $record['id']: $record);
+    }
+    public function flickrAlbumUrl(array $album)
+    {
+        return sprintf('https://www.flickr.com/photos/%s/albums/%s', $album['username'], $album['id']);
+    }
+
+
+
     /**
      * Returns a license based on string from common license agreements
      *
@@ -87,6 +119,53 @@ class FlickrService extends PhpFlickr
     public function uploader(): Uploader
     {
         return new Uploader($this);
+    }
+
+    public function tagString($tagName, $tagValue): ?string
+    {
+        if ($tagValue != '') {
+            // escape or remove
+            if (str_contains($tagValue, '"')) {
+                dd($tagValue);
+            }
+            if (str_contains($tagValue, ' ')) {
+                $tagValue = sprintf('"%s"', $tagValue);
+            }
+            return sprintf('%s=%s', $tagName, $tagValue);
+        } else {
+            return null;
+        }
+
+    }
+
+    public function tagHashToString(array $tags): string
+    {
+        $parts = [];
+        foreach ($tags as $key=>$value) {
+            $parts[] = $this->tagString($key, $value);
+        }
+        return join(' ', $parts);
+
+    }
+
+    public function getTagsAsHash(string $tagString)
+    {
+        $machineTags = $regularTags = [];
+        foreach (explode(' ', $tagString) as $tagPart) {
+            // check if machineTag.
+            // @todo: handle array
+            if (str_contains($tagPart, '=')) {
+                [$tag, $value] = explode('=', $tagPart, 2);
+                $machineTags[$tag] = $value;
+            } else {
+                $regularTags[] = $tagPart;
+            }
+        }
+
+        $machineTags['_'] = join(' ', $regularTags);
+        return $machineTags;
+
+
     }
 
 }
