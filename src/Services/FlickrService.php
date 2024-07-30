@@ -123,7 +123,10 @@ class FlickrService extends PhpFlickr
 
     public function tagString($tagName, $tagValue): ?string
     {
-        if ($tagValue != '') {
+        if (is_array($tagValue)) {
+            return null;
+        }
+        if (($tagValue != '')) {
             // escape or remove
             if (str_contains($tagValue, '"')) {
                 dd($tagValue);
@@ -142,7 +145,7 @@ class FlickrService extends PhpFlickr
     {
         $parts = [];
         foreach ($tags as $key=>$value) {
-            $parts[] = $this->tagString($key, $value);
+            $parts[] = is_array($value) ? join(' ', $value) : $this->tagString($key, $value);
         }
         return join(' ', $parts);
 
@@ -164,8 +167,8 @@ class FlickrService extends PhpFlickr
 
         $machineTags['_'] = join(' ', $regularTags);
         return $machineTags;
-
-
     }
+
+
 
 }
