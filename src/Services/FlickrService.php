@@ -21,7 +21,7 @@ class FlickrService extends PhpFlickr
     public function __construct(
         string $apiKey,
         string $secret,
-        private ?Security $security,
+        private ?Security $security=null,
         int|\DateInterval|null $cacheExpiration = null,
     ) {
         parent::__construct($apiKey, $secret);
@@ -107,13 +107,15 @@ class FlickrService extends PhpFlickr
     {
         // https://gitea.armuli.eu/museum-digital/MDAllowedValueSets/src/branch/master/src/MDLicensesSet.php
         // https://mus.wip/flickr-licenses.json
-        return match(strtoupper($license)) {
+        $licenseId = match (strtoupper($license)) {
             'CC0' => 9,
+
             'CC-BY-SA',
             'CC BY-NC-SA' => 1, // "https://creativecommons.org/licenses/by-nc-sa/2.0/"
-            default => assert(false, "Missing $license")
+            default => 0, // assert(false, "Missing $license")
         };
-
+        assert($license, "Missing $license");
+        return $licenseId;
     }
 
     public function uploader(): Uploader
