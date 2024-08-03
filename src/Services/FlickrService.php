@@ -18,19 +18,20 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 class FlickrService extends PhpFlickr
 {
     protected PhpFlickr $flickr;
+
     public function __construct(
-        string $apiKey,
-        string $secret,
-        private ?Security $security=null,
+        string                 $apiKey,
+        string                 $secret,
+        private ?Security      $security = null,
         int|\DateInterval|null $cacheExpiration = null,
-    ) {
+    )
+    {
         parent::__construct($apiKey, $secret);
 
 
         if ($cacheExpiration) {
             $this->setCacheDefaultExpiry($cacheExpiration);
         }
-
 
 
 //        $this->flickr = new \Samwilson\PhpFlickr\PhpFlickr($apiKey, $apiSecret);
@@ -65,7 +66,7 @@ class FlickrService extends PhpFlickr
         return $this;
     }
 
-    public function flickrThumbnailUrl(array|object $record, string $size='m', string $format = 'jpg'): string
+    public function flickrThumbnailUrl(array|object $record, string $size = 'm', string $format = 'jpg'): ?string
     {
         if (is_object($record)) {
             $record = (array)$record;
@@ -74,27 +75,31 @@ class FlickrService extends PhpFlickr
 //        https://www.flickr.com/services/api/misc.urls.html
 //        You can also use s,q,t for cropped squares,
 // m=240,n=320,w=400 for small, z=620,c=800 for medium, and b=1024 for large.
-        return sprintf('https://live.staticflickr.com/%s/%s_%s_%s.%s',
-            $record['server'],
-            $record['id'],
-            $record['secret'],
-            $size,
-            $format
-        );
+        if ($record['server'] ?? false) {
+            return sprintf('https://live.staticflickr.com/%s/%s_%s_%s.%s',
+                $record['server'],
+                $record['id'],
+                $record['secret'],
+                $size,
+                $format
+            );
+        }
+        return null;
     }
 
-    public function flickrPageUrl(array|object|int|string $record)
+    public function flickrPageUrl(array|object|int|string $record): ?string
     {
         if (is_object($record)) {
             $record = (array)$record;
         }
-        return sprintf('https://www.flickr.com/photo.gne?id=%s', is_array($record) ? $record['id']: $record);
+        $id = is_array($record) ? ($record['id']??null) : $record;
+        return $id ? sprintf('https://www.flickr.com/photo.gne?id=%s', $id) : null;
     }
+
     public function flickrAlbumUrl(array $album)
     {
         return sprintf('https://www.flickr.com/photos/%s/albums/%s', $album['username'], $album['id']);
     }
-
 
 
     /**
@@ -146,7 +151,7 @@ class FlickrService extends PhpFlickr
     public function tagHashToString(array $tags): string
     {
         $parts = [];
-        foreach ($tags as $key=>$value) {
+        foreach ($tags as $key => $value) {
             $parts[] = is_array($value) ? join(' ', $value) : $this->tagString($key, $value);
         }
         return join(' ', $parts);
@@ -170,7 +175,6 @@ class FlickrService extends PhpFlickr
         $machineTags['_'] = join(' ', $regularTags);
         return $machineTags;
     }
-
 
 
 }
