@@ -135,17 +135,22 @@ class FlickrService extends PhpFlickr
         }
         if (($tagValue != '')) {
             // escape or remove
-            if (str_contains($tagValue, '"')) {
-                dd($tagValue);
-            }
-            if (str_contains($tagValue, ' ')) {
-                $tagValue = sprintf('"%s"', $tagValue);
-            }
             return sprintf('%s=%s', $tagName, $tagValue);
         } else {
             return null;
         }
-
+    }
+    
+    public function quoteValue(string $tagValue): string
+    {
+        if (str_contains($tagValue, '"')) {
+            dd($tagValue);
+        }
+        if (str_contains($tagValue, ' ')) {
+            $tagValue = sprintf('"%s"', $tagValue);
+        }
+        return $tagValue;
+        
     }
 
     public function tagHashToString(array $tags): string
@@ -158,6 +163,7 @@ class FlickrService extends PhpFlickr
 
     }
 
+    // this is ONLY used with a search result, which returns a compressed tag string.  photos()->getInfo() returns tags properly
     public function getTagsAsHash(string $tagString)
     {
         $machineTags = $regularTags = [];

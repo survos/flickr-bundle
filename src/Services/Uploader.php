@@ -95,7 +95,7 @@ class Uploader
      * @throws Exception If an OAuth error occurs.
      * @throws FlickrException If the file can't be read.
      */
-    protected function sendFile($filename, $params)
+    public function sendFile($filename, $params)
     {
         if (!is_readable($filename)) {
             throw new FlickrException("File not readable: $filename");
