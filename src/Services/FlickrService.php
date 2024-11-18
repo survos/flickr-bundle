@@ -48,10 +48,15 @@ class FlickrService extends PhpFlickr
         if ($initialized) {
             return $this;
         }
-        /** @var FlickrUserInterface $user */
-        if ($this->security && ($user = $this->security->getUser()) && method_exists($user, 'getFlickrKey') && $user->getFlickrKey()) {
-            $key = $user->getFlickrKey();
-            $secret = $user->getFlickrSecret();
+        if ($this->security) {
+            /** @var FlickrUserInterface $user */
+            if ($user = $this->security->getUser()) {
+                if (method_exists($user, 'getFlickrKey') && $user->getFlickrKey()) {
+                    $key = $user->getFlickrKey();
+                    $secret = $user->getFlickrSecret();
+                }
+            }
+
         }
         if ($key) {
             $token = new StdOAuth1Token();
@@ -140,7 +145,7 @@ class FlickrService extends PhpFlickr
             return null;
         }
     }
-    
+
     public function quoteValue(string $tagValue): string
     {
         if (str_contains($tagValue, '"')) {
@@ -150,7 +155,7 @@ class FlickrService extends PhpFlickr
             $tagValue = sprintf('"%s"', $tagValue);
         }
         return $tagValue;
-        
+
     }
 
     public function tagHashToString(array $tags): string

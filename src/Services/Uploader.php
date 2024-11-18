@@ -10,7 +10,6 @@ use OAuth\Common\Exception\Exception;
 use SimpleXMLElement;
 use Survos\FlickrBundle\Services\FlickrService;
 use Samwilson\PhpFlickr\FlickrException;
-
 class Uploader
 {
 

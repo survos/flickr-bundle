@@ -14,7 +14,7 @@
         "symfony/http-kernel": "^6.4 || ^7.0",
         "twig/twig": "^3.4",
         "samwilson/phpflickr": "^5.1",
-        "endroid/installer": "^1.4"
+        "survos/installer": "^1.4"
     },
     "autoload": {
         "psr-4": {
@@ -32,7 +32,7 @@
     },
     "config": {
         "allow-plugins": {
-            "endroid/installer": true
+            "survos/installer": true
         }
     }
 }
