@@ -14,7 +14,7 @@
         "symfony/http-kernel": "^6.4 || ^7.0",
         "twig/twig": "^3.4",
         "samwilson/phpflickr": "^5.1",
-        "survos/installer": "^1.4"
+        "survos/installer": "^2.0"
     },
     "autoload": {
         "psr-4": {
