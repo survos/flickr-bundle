@@ -14,16 +14,18 @@
         "symfony/http-kernel": "^6.4 || ^7.1",
         "twig/twig": "^3.4",
         "samwilson/phpflickr": "^5.1",
-        "survos/installer": "^1.5"
+        "survos/installer": "*@dev",
+        "zenstruck/class-metadata": "^1.1"
     },
     "require-dev": {
-        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan": "^1.12 || ^2.0",
         "symfony/browser-kit": "^6.4 || ^7.1",
         "symfony/framework-bundle": "^6.4 || ^7.1",
         "symfony/phpunit-bridge": "^6.4 || ^7.1",
         "symfony/security-bundle": "^6.4 || ^7.1",
         "symfony/twig-bundle": "^6.4 || ^7.1",
-        "symfony/var-dumper": "^6.4 || ^7.1"
+        "symfony/var-dumper": "^6.4 || ^7.1",
+        "symfony/console": "^7.2"
     },
     "autoload": {
         "psr-4": {
@@ -32,7 +34,14 @@
     },
     "config": {
         "allow-plugins": {
-            "survos/installer": true
+            "survos/installer": true,
+            "zenstruck/class-metadata": true
+        }
+    },
+    "repositories": {
+        "survos_installer": {
+            "type": "path",
+            "url": "/home/tac/g/sites/installer"
         }
     }
 }

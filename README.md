@@ -16,6 +16,14 @@ In addition to putting the api key and secret in environment variables, there ar
 composer require survos/flickr-bundle
 ```
 
+## Flickr API keys
+
+There are 2 ways to use this bundle. The simplest is if you're only using it to access your own account.  In that case, simply add the api keys to the environment.
+
+The second is if your users can authenticate the flickr account and access their own photos.  In this case, one easy way to store the keys is to add a FlickrUserTrait to the User class.
+
+
+
 ## Demo App
 
 ```bash

@@ -1,0 +1,5 @@
+survos_flickr:
+  type: attribute
+  resource:
+    path: '@SurvosFlickrBundle/src/Controller/'
+    namespace: Survos\FlickrBundle\Controller
