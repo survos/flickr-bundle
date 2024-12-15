@@ -49,7 +49,7 @@ trait FlickrUserTrait
         return $this->flickrUserId;
     }
 
-    public function setFlickrUserId(?string $flickrUserId): self
+    public function setFlickrUserId(?string $flickrUserId): static
     {
         $this->flickrUserId = $flickrUserId;
         return $this;
@@ -61,7 +61,7 @@ trait FlickrUserTrait
         return $this->flickrUsername;
     }
 
-    public function setFlickrUsername(?string $flickrUsername): FlickrUserTrait
+    public function setFlickrUsername(?string $flickrUsername): static
     {
         $this->flickrUsername = $flickrUsername;
         return $this;
