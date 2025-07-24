@@ -14,7 +14,7 @@
         "symfony/http-kernel": "^6.4 || ^7.1",
         "twig/twig": "^3.4",
         "samwilson/phpflickr": "^6.0",
-        "survos/installer": "*  "
+        "survos/installer": "*"
     },
     "require-dev": {
         "phpstan/phpstan": "^2.0",

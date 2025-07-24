@@ -73,6 +73,7 @@ class FlickrService extends PhpFlickr
 
     public function flickrThumbnailUrl(array|object $record, string $size = 'm', string $format = 'jpg'): ?string
     {
+        // @todo: assert valid size
         if (is_object($record)) {
             $record = (array)$record;
         }
