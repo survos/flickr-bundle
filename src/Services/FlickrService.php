@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Survos\FlickrBundle\Services;
 
-use App\Entity\User;
 use OAuth\Common\Storage\Memory;
 use OAuth\Common\Storage\Session;
 use OAuth\OAuth1\Token\StdOAuth1Token;
@@ -51,12 +50,9 @@ class FlickrService extends PhpFlickr
         if ($this->security) {
             /** @var FlickrUserInterface $user */
             if ($user = $this->security->getUser()) {
-                if (method_exists($user, 'getFlickrKey') && $user->getFlickrKey()) {
-                    $key = $user->getFlickrKey();
-                    $secret = $user->getFlickrSecret();
-                }
+                $key = $user->getFlickrKey();
+                $secret = $user->getFlickrSecret();
             }
-
         }
         if ($key) {
             $token = new StdOAuth1Token();
@@ -129,7 +125,7 @@ class FlickrService extends PhpFlickr
         return $licenseId;
     }
 
-    public function uploader(): Uploader
+            public function uploader(): Uploader
     {
         return new Uploader($this);
     }

@@ -5,6 +5,8 @@
 namespace Survos\FlickrBundle;
 
 use Survos\BarcodeBundle\Twig\BarcodeTwigExtension;
+use Survos\FlickrBundle\Command\FlickrImportCommand;
+use Survos\FlickrBundle\Command\FlickrUploadCommand;
 use Survos\FlickrBundle\Services\FlickrService;
 use Survos\FlickrBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -35,6 +37,12 @@ class SurvosFlickrBundle extends AbstractBundle
             );
 
         ;
+        foreach ([FlickrImportCommand::class, FlickrUploadCommand::class] as $class) {
+            $builder->autowire($class)
+                ->setAutoconfigured(true)
+                ->setPublic(true)
+                ->addTag('console.command');
+        }
 
         $builder
             ->autowire('survos.flickr_twig', TwigExtension::class)
