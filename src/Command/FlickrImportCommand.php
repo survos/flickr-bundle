@@ -28,7 +28,7 @@ class FlickrImportCommand
         #[Argument('Flickr album ID or URL')]
         string $albumUrl = 'https://www.flickr.com/photos/202304062@N02/albums/72177720328661598/',
         #[Option('Photos per page for pagination')]
-        int $perPage = 100,
+        int $perPage = 10,
         #[Option('Level of photo information to fetch: basic, detailed, full')]
         string $infoLevel = 'detailed',
         #[Option('Show what would be processed without dispatching events')]
@@ -113,29 +113,6 @@ class FlickrImportCommand
         });
     }
 
-    private function getCachedPhotos(
-        string $albumId, string $userId, array $params, int $cacheTtl): array
-    {
-        if (!$this->cache || $cacheTtl <= 0) {
-            return $this->flickrService->photosets()->getPhotos($albumId, $userId, $params);
-        }
-        // Track cache performance
-        $cacheKeyExists = false;
-        if ($this->cache && $cacheTtl > 0) {
-            $cacheKey = $this->cacheKey("flickr_photos",
-                albumId: $albumId,
-                userId: $userId,
-                params: $params
-            );
-            $cacheKeyExists = $this->cache->hasItem($cacheKey);
-        }
-
-        return $this->cache->get($cacheKey, function (ItemInterface $item) use ($albumId, $userId, $params, $cacheTtl) {
-            $item->expiresAfter($cacheTtl);
-            return $this->flickrService->photosets()->getPhotos($albumId, $userId, $params);
-        });
-    }
-
     private function getCachedPhotoInfo(string $photoId, string $userId, int $cacheTtl): array
     {
         if (!$this->cache || $cacheTtl <= 0) {
@@ -181,52 +158,57 @@ class FlickrImportCommand
 
         $io->section('Processing Photos');
         $io->progressStart();
+        $page      = 1;
+        $processed = 0;
 
         do {
             $params = [
-                'page' => $page,
+                'page'     => $page,
                 'per_page' => $perPage,
-                'extras' => $this->getExtrasForInfoLevel($infoLevel)
+                'extras'   => $this->getExtrasForInfoLevel($infoLevel),
             ];
 
             $response = $this->getCachedPhotos($albumId, $userId, $params, $cacheTtl);
-            
 
-            $totalPages = $response['pages'];
-            $totalPhotos = $response['total'];
+            $totalPages  = isset($response['pages']) ? (int)$response['pages'] : 1;
+            $totalPhotos = isset($response['total']) ? (int)$response['total'] : 0;
+            $photos      = $response['photo'] ?? [];
 
-            foreach ($response['photo'] as $photo) {
-                $processedCount++;
+            if (!$photos) {
+                // Defensive: if the API/state says there are pages but this one is empty, stop to avoid an infinite loop.
+                $io->writeln(sprintf('No photos returned for page %d; stopping.', $page));
+                break;
+            }
+
+            foreach ($photos as $photo) {
+                $processed++;
 
                 $io->writeln(sprintf(
                     'Processing photo %d/%d (Page %d): %s',
-                    $processedCount,
+                    $processed,
                     $totalPhotos,
                     $page,
                     $photo['title'] ?? 'Untitled'
                 ));
 
-                // Get additional photo info based on level
                 $photoData = $this->enrichPhotoData($photo, $userId, $infoLevel, $cacheTtl);
 
-                // Create and dispatch event
                 $event = new FlickrPhotoEvent(
                     albumId: $albumId,
                     userId: $userId,
                     photoData: $photoData,
                     albumInfo: $response['photoset'] ?? [],
                     processingContext: [
-                        'page' => $page,
-                        'photo_number' => $processedCount,
-                        'total_photos' => $totalPhotos,
-                        'info_level' => $infoLevel
+                        'page'          => $page,
+                        'photo_number'  => $processed,
+                        'total_photos'  => $totalPhotos,
+                        'info_level'    => $infoLevel,
                     ]
                 );
 
                 if (!$dryRun) {
                     $this->eventDispatcher->dispatch($event, FlickrPhotoEvent::class);
                     $eventsDispatched++;
-
                     if ($event->shouldStopProcessing()) {
                         $io->writeln('Processing stopped by event listener');
                         break 2;
@@ -235,26 +217,17 @@ class FlickrImportCommand
                     $io->writeln('  → [DRY RUN] Would dispatch FlickrPhotoEvent');
                 }
 
-                // Show photo details in verbose mode
                 if ($io->isVerbose()) {
                     $this->showPhotoDetails($photoData, $io);
                 }
 
-                // Check limit
-                if ($limit && $processedCount >= $limit) {
+                if ($limit && $processed >= $limit) {
                     $io->writeln(sprintf('Reached limit of %d photos', $limit));
                     break 2;
                 }
 
                 $io->progressAdvance(1);
             }
-
-            $io->writeln(sprintf(
-                " Page %d/%d complete (%d photos processed)",
-                $page,
-                $totalPages,
-                count($response['photo'])
-            ), SymfonyStyle::VERBOSITY_VERBOSE);
 
             $page++;
         } while ($page <= $totalPages);
@@ -368,4 +341,57 @@ class FlickrImportCommand
 
         return null;
     }
+    private function normalizeParams(array $params): array
+    {
+        // ensure deterministic order for nested arrays like 'extras'
+        array_walk_recursive($params, static function (&$v) {
+            // leave values as-is
+        });
+        ksort($params);
+        if (isset($params['extras']) && is_array($params['extras'])) {
+            sort($params['extras']); // order-insensitive
+        }
+        return $params;
+    }
+
+    private function buildCacheKey(string $prefix, string $albumId, string $userId, array $params): string
+    {
+        $params = $this->normalizeParams($params);
+        return md5(sprintf(
+            '%s:%s:%s:%s',
+            $prefix,
+            $albumId,
+            $userId,
+            json_encode($params, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE))
+        );
+    }
+
+    private function getCachedPhotos(
+        string $albumId,
+        string $userId,
+        array $params,
+        int $cacheTtl
+    ): array {
+        if (!$this->cache || $cacheTtl <= 0) {
+            return $this->flickrService->photosets()->getPhotos($albumId, $userId, $params,
+                perPage: $params['per_page'],
+                page: $params['page']
+            );
+        }
+
+        $cacheKey = $this->buildCacheKey('flickr_photos', $albumId, $userId, $params);
+
+        $items = $this->cache->get($cacheKey, function (ItemInterface $item) use ($albumId, $userId, $params, $cacheTtl) {
+            $item->expiresAfter($cacheTtl);
+            return $this->flickrService->photosets()->getPhotos($albumId, $userId,
+                extras: $params,
+                perPage: $params['per_page'],
+                page: $params['page']
+            );
+
+        });
+        dump($params['page'], $params['per_page'], count($items));
+        return $items;
+    }
+
 }
