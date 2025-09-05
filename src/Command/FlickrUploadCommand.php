@@ -21,7 +21,6 @@ class FlickrUploadCommand
     public function __construct(
         private FlickrService $flickrService,
         private EventDispatcherInterface $eventDispatcher,
-        private SerializerInterface $serializer,
         private LoggerInterface $logger,
         private ?CacheInterface $cache = null,
     ) {
@@ -29,8 +28,8 @@ class FlickrUploadCommand
 
     public function __invoke(
         SymfonyStyle $io,
-        #[Argument('Pixie code or search criteria', ArgumentMode::OPTIONAL)]
-        string $pixieCode = '',
+        #[Argument('Pixie code or search criteria, only used for callback context')]
+        ?string $pixieCode = null,
         #[Option('Limit the number of photos to process')]
         int $limit = 0,
         #[Option('Photos per page')]

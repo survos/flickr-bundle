@@ -301,7 +301,8 @@ class FlickrImportCommand
         return match($infoLevel) {
             'basic' => 'description,tags',
             'detailed' => 'description,url_m,url_l,url_o,tags,machine_tags,date_taken,owner_name',
-            'full' => 'description,url_m,url_l,url_o,url_h,url_k,tags,machine_tags,date_taken,owner_name,geo,path_alias,views'
+            'full' => 'description,url_m,url_l,url_o,url_h,url_k,tags,machine_tags,date_taken,owner_name,geo,path_alias,views',
+            default => assert(false, "Invalid info level: {$infoLevel}")
         };
     }
 

@@ -25,7 +25,8 @@
         "symfony/phpunit-bridge": "^7.3",
         "symfony/security-bundle": "^7.3",
         "symfony/twig-bundle": "^7.3",
-        "symfony/var-dumper": "^7.3"
+        "symfony/var-dumper": "^7.3",
+        "doctrine/orm": "^3.5"
     },
     "autoload": {
         "psr-4": {
