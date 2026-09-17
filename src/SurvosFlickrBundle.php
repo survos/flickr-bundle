@@ -1,12 +1,9 @@
 <?php
 
-/** generated from /home/tac/g/survos/survos/vendor/survos/maker-bundle/templates/skeleton/bundle/src/Bundle.tpl.php */
+declare(strict_types=1);
 
 namespace Survos\FlickrBundle;
 
-use Survos\BarcodeBundle\Twig\BarcodeTwigExtension;
-use Survos\FlickrBundle\Command\FlickrImportCommand;
-use Survos\FlickrBundle\Command\FlickrUploadCommand;
 use Survos\FlickrBundle\Services\FlickrService;
 use Survos\FlickrBundle\Twig\TwigExtension;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -14,46 +11,32 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+use Survos\Kit\AbstractSurvosBundle;
 
-class SurvosFlickrBundle extends AbstractBundle
+// Symfony\Component\HttpKernel\Bundle\Bundle <-- Flex auto-registration marker (see Survos\Kit\AbstractSurvosBundle)
+final class SurvosFlickrBundle extends AbstractSurvosBundle
 {
-    public function configureRoutes(RoutingConfigurator $routes): void
-    {
-        $routes->import(dirname(__DIR__) . '/src/Controller/', 'attribute');
-    }
-
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
+        parent::loadExtension($config, $container, $builder);
+
         $builder->autowire(FlickrService::class)
             ->setAutowired(true)
             ->setAutoconfigured(true)
             ->setArgument('$apiKey', $config['api_key'])
             ->setArgument('$secret', $config['secret'])
             ->setArgument('$cacheExpiration', $config['cache_expiration'])
-            // this may have existed for the session?
-//            ->setArgument(
-//                '$requestStack',
-//                new Reference('request_stack', ContainerInterface::NULL_ON_INVALID_REFERENCE)
-//            )
+            ->setArgument('$accessToken', $config['access_token'])
+            ->setArgument('$accessTokenSecret', $config['access_token_secret'])
+
             ->setArgument(
                 '$security',
                 new Reference('security.helper', ContainerInterface::NULL_ON_INVALID_REFERENCE)
             );
 
-        ;
-        foreach ([FlickrImportCommand::class, FlickrUploadCommand::class] as $class) {
-            $builder->autowire($class)
-                ->setAutoconfigured(true)
-                ->setPublic(true)
-                ->addTag('console.command');
-        }
-
         $builder
             ->autowire('survos.flickr_twig', TwigExtension::class)
             ->addTag('twig.extension')
-//            ->setArgument('$flickrService', new Reference(FlickrService::class))
         ;
 
     }
@@ -64,7 +47,9 @@ class SurvosFlickrBundle extends AbstractBundle
             ->children()
             ->scalarNode('api_key')->defaultValue('')->end()
             ->scalarNode('secret')->defaultValue('')->end()
-            ->scalarNode('cache_expiration')->defaultValue(3600)->end()
+            ->integerNode('cache_expiration')->min(0)->defaultValue(3600)->end()
+            ->scalarNode('access_token')->defaultNull()->end()
+            ->scalarNode('access_token_secret')->defaultNull()->end()
             ->end();
     }
 }

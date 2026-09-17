@@ -1,5 +1,1 @@
-survos_flickr:
-  type: attribute
-  resource:
-    path: '@SurvosFlickrBundle/src/Controller/'
-    namespace: Survos\FlickrBundle\Controller
+# This bundle currently provides no HTTP routes. OAuth callbacks belong to the host app.

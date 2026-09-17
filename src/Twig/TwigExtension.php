@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Survos\FlickrBundle\Twig;
 
 use Survos\FlickrBundle\Services\FlickrService;

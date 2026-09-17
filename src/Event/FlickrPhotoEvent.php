@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Survos\FlickrBundle\Event;
 
 use Symfony\Contracts\EventDispatcher\Event;
@@ -19,7 +21,7 @@ class FlickrPhotoEvent extends Event
     ) {
     }
 
-    public function getAlbumId(): string
+    public function getAlbumId(): ?string
     {
         return $this->albumId;
     }
@@ -36,17 +38,17 @@ class FlickrPhotoEvent extends Event
 
     public function getPhotoId(): string
     {
-        return $this->photoData['id'] ?? '';
+        return (string) ($this->photoData['id'] ?? '');
     }
 
     public function getPhotoTitle(): string
     {
-        return $this->photoData['title'] ?? '';
+        return $this->textValue($this->photoData['title'] ?? '');
     }
 
     public function getPhotoDescription(): string
     {
-        return $this->photoData['description'] ?? '';
+        return $this->textValue($this->photoData['description'] ?? '');
     }
 
     public function getDirectUrls(): array
@@ -88,4 +90,9 @@ class FlickrPhotoEvent extends Event
     {
         return $this->stopProcessing;
     }
+    private function textValue(mixed $value): string
+    {
+        return (string) (is_array($value) ? ($value['_content'] ?? '') : $value);
+    }
+
 }

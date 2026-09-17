@@ -1,8 +1,5 @@
 bundles:
-  Doctrine\Bundle\DoctrineBundle\DoctrineBundle: [all]
-copy-from-recipe:
-  config/: '%CONFIG_DIR%/'
-  src/: '%SRC_DIR%/'
+  Survos\FlickrBundle\SurvosFlickrBundle: [all]
 env: |
   FLICKR_API_KEY=
   FLICKR_SECRET=
@@ -12,8 +9,3 @@ copy:
       survos_flickr:
         api_key: '%env(FLICKR_API_KEY)%'
         secret: '%env(FLICKR_SECRET)%'
-  - filename: config/routes/survos_flickr.yaml
-    content: |
-      survos_flickr:
-        resource: '@SurvosFlickrBundle/config/routes.yaml'
-        prefix: '/admin/flickr'

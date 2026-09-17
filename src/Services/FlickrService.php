@@ -4,89 +4,77 @@ declare(strict_types=1);
 
 namespace Survos\FlickrBundle\Services;
 
-use OAuth\Common\Storage\Memory;
-use OAuth\Common\Storage\Session;
+
 use OAuth\OAuth1\Token\StdOAuth1Token;
 use Samwilson\PhpFlickr\PhpFlickr;
 use Survos\FlickrBundle\Metadata\FlickrUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class FlickrService extends PhpFlickr
 {
-    protected PhpFlickr $flickr;
 
     public function __construct(
         string                 $apiKey,
         string                 $secret,
         private ?Security      $security = null,
         int|\DateInterval|null $cacheExpiration = null,
+        private ?string $accessToken = null,
+        private ?string $accessTokenSecret = null,
     )
     {
         parent::__construct($apiKey, $secret);
 
 
-        if ($cacheExpiration) {
+        if ($cacheExpiration !== null) {
             $this->setCacheDefaultExpiry($cacheExpiration);
         }
-
-
-//        $this->flickr = new \Samwilson\PhpFlickr\PhpFlickr($apiKey, $apiSecret);
-//        $storage = new Memory();
-//// Create the access token from the strings you acquired before.
-//        $token = new StdOAuth1Token();
-//// Add the token to the storage.
-//        $storage->storeAccessToken('Flickr', $token);
+        $this->authenticate($accessToken, $accessTokenSecret);
     }
 
     public function authenticate(?string $key = null, ?string $secret = null): self
     {
-        static $initialized = false;
-        if ($initialized) {
-            return $this;
-        }
-        if ($this->security) {
-            /** @var FlickrUserInterface $user */
-            if ($user = $this->security->getUser()) {
+        if ($key === null && $secret === null) {
+            $user = $this->security?->getUser();
+            if ($user instanceof FlickrUserInterface) {
                 $key = $user->getFlickrKey();
                 $secret = $user->getFlickrSecret();
+            } else {
+                $key = $this->accessToken;
+                $secret = $this->accessTokenSecret;
             }
         }
-        if ($key) {
-            $token = new StdOAuth1Token();
+        if ((bool) $key !== (bool) $secret) {
+            throw new \InvalidArgumentException('Both Flickr access token and token secret are required.');
+        }
+        $token = new StdOAuth1Token();
+        if ($key && $secret) {
             $token->setAccessToken($key);
             $token->setAccessTokenSecret($secret);
-            $storage = new Session();
-            $storage->storeAccessToken('Flickr', $token);
-            $this->setOauthStorage($storage);
         }
-        $initialized = true;
+        // Keep the storage instance: an existing OAuth service holds a reference to it.
+        $this->getOauthTokenStorage()->storeAccessToken('Flickr', $token);
 
         return $this;
     }
 
     public function flickrThumbnailUrl(array|object $record, string $size = 'm', string $format = 'jpg'): ?string
     {
-        // @todo: assert valid size
-        if (is_object($record)) {
-            $record = (array)$record;
+        $record = (array) $record;
+        if (isset($record['url_'.$size])) {
+            return $record['url_'.$size];
         }
-//        https://live.staticflickr.com/{server-id}/{id}_{o-secret}_o.{o-format}
-//        https://www.flickr.com/services/api/misc.urls.html
-//        You can also use s,q,t for cropped squares,
-// m=240,n=320,w=400 for small, z=620,c=800 for medium, and b=1024 for large.
-        if ($record['server'] ?? false) {
-            return sprintf('https://live.staticflickr.com/%s/%s_%s_%s.%s',
-                $record['server'],
-                $record['id'],
-                $record['secret'],
-                $size,
-                $format
-            );
+        if (!in_array($size, ['', 's', 'q', 't', 'm', 'n', 'w', 'z', 'c', 'b', 'o'], true)) {
+            return null; // Larger sizes require their own secret; request url_h/url_k/etc.
         }
-        return null;
+        $secret = $size === 'o' ? ($record['originalsecret'] ?? null) : ($record['secret'] ?? null);
+        if ($size === 'o') {
+            $format = $record['originalformat'] ?? null;
+        }
+        if (empty($record['server']) || empty($record['id']) || !$secret || !$format) {
+            return null;
+        }
+        return sprintf('https://live.staticflickr.com/%s/%s_%s%s.%s',
+            $record['server'], $record['id'], $secret, $size === '' ? '' : '_'.$size, $format);
     }
 
     public function flickrPageUrl(array|object|int|string $record): ?string
@@ -117,15 +105,19 @@ class FlickrService extends PhpFlickr
         $licenseId = match (strtoupper($license)) {
             'CC0' => 9,
 
-            'CC-BY-SA',
-            'CC BY-NC-SA' => 1, // "https://creativecommons.org/licenses/by-nc-sa/2.0/"
+            'CC-BY' , 'CC BY' => 4,
+            'CC-BY-SA', 'CC BY-SA' => 5,
+            'CC-BY-ND', 'CC BY-ND' => 6,
+            'CC-BY-NC', 'CC BY-NC' => 2,
+            'CC-BY-NC-ND', 'CC BY-NC-ND' => 3,
+            'CC-BY-NC-SA', 'CC BY-NC-SA' => 1, // "https://creativecommons.org/licenses/by-nc-sa/2.0/"
             default => 0, // assert(false, "Missing $license")
         };
         assert($license, "Missing $license");
         return $licenseId;
     }
 
-            public function uploader(): Uploader
+    public function uploader(): Uploader
     {
         return new Uploader($this);
     }
@@ -137,7 +129,7 @@ class FlickrService extends PhpFlickr
         }
         if (($tagValue != '')) {
             // escape or remove
-            return sprintf('%s=%s', $tagName, $tagValue);
+            return sprintf('%s=%s', $tagName, $this->quoteValue((string) $tagValue));
         } else {
             return null;
         }
@@ -146,9 +138,9 @@ class FlickrService extends PhpFlickr
     public function quoteValue(string $tagValue): string
     {
         if (str_contains($tagValue, '"')) {
-            dd($tagValue);
+            throw new \InvalidArgumentException('Flickr tag values cannot contain double quotes.');
         }
-        if (str_contains($tagValue, ' ')) {
+        if (preg_match('/\\s/u', $tagValue)) {
             $tagValue = sprintf('"%s"', $tagValue);
         }
         return $tagValue;
@@ -159,7 +151,7 @@ class FlickrService extends PhpFlickr
     {
         $parts = [];
         foreach ($tags as $key => $value) {
-            $parts[] = is_array($value) ? join(' ', $value) : $this->tagString($key, $value);
+            $parts[] = is_array($value) ? join(' ', array_map($this->quoteValue(...), $value)) : $this->tagString($key, $value);
         }
         return join(' ', $parts);
 
