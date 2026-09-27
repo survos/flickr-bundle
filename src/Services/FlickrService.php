@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Survos\FlickrBundle\Services;
 
+use Survos\FlickrBundle\Util\FlickrUrl;
+
 
 use OAuth\OAuth1\Token\StdOAuth1Token;
 use Samwilson\PhpFlickr\PhpFlickr;
@@ -63,18 +65,15 @@ class FlickrService extends PhpFlickr
         if (isset($record['url_'.$size])) {
             return $record['url_'.$size];
         }
-        if (!in_array($size, ['', 's', 'q', 't', 'm', 'n', 'w', 'z', 'c', 'b', 'o'], true)) {
-            return null; // Larger sizes require their own secret; request url_h/url_k/etc.
+        if ($size !== 'o') { // Larger sizes (h, k, ...) require their own secret; request url_h/url_k/etc.
+            return FlickrUrl::image($record['server'] ?? '', $record['id'] ?? '', (string) ($record['secret'] ?? ''), $size, $format);
         }
-        $secret = $size === 'o' ? ($record['originalsecret'] ?? null) : ($record['secret'] ?? null);
-        if ($size === 'o') {
-            $format = $record['originalformat'] ?? null;
-        }
+        $secret = $record['originalsecret'] ?? null;
+        $format = $record['originalformat'] ?? null;
         if (empty($record['server']) || empty($record['id']) || !$secret || !$format) {
             return null;
         }
-        return sprintf('https://live.staticflickr.com/%s/%s_%s%s.%s',
-            $record['server'], $record['id'], $secret, $size === '' ? '' : '_'.$size, $format);
+        return sprintf('https://live.staticflickr.com/%s/%s_%s_o.%s', $record['server'], $record['id'], $secret, $format);
     }
 
     public function flickrPageUrl(array|object|int|string $record): ?string

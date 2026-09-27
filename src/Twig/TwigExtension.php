@@ -29,6 +29,8 @@ class TwigExtension extends AbstractExtension
         return [
             new TwigFunction('flickrAlbumUrl', [$this->flickrService, 'flickrAlbumUrl']),
             new TwigFunction('flickrPageUrl', [$this->flickrService, 'flickrPageUrl']),
+            // another size of a Flickr static URL: flickrResize(url, 'q') -> the 150 px square
+            new TwigFunction('flickrResize', [\Survos\FlickrBundle\Util\FlickrUrl::class, 'resize']),
             new TwigFunction('flickrThumbnailUrl',
                 [$this->flickrService, 'flickrThumbnailUrl']),
             //            new TwigFunction('function_name', [::class, 'doSomething']),
