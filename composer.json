@@ -31,7 +31,7 @@
         "symfony/security-bundle": "^8.1",
         "symfony/twig-bundle": "^8.1",
         "symfony/var-dumper": "^8.1",
-        "doctrine/orm": "^2.12 || ^3.3",
+        "doctrine/orm": "^3.7",
         "phpunit/phpunit": "^13.0"
     },
     "autoload": {
