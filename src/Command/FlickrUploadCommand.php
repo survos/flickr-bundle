@@ -30,11 +30,10 @@ class FlickrUploadCommand
         #[Option('Clear cache before processing')]
         bool $clearCache = false,
         #[Option('Show what would be processed without dispatching events')]
-        bool $dryRun = false
-    ): int
-    {
+        bool $dryRun = false,
+    ): int {
         $io->error('This legacy moderation command has no upload implementation. Use survos:flickr:upload-file to upload an image.');
+
         return Command::FAILURE;
     }
-
 }

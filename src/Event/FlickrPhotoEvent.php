@@ -13,11 +13,11 @@ class FlickrPhotoEvent extends Event
     private bool $stopProcessing = false;
 
     public function __construct(
-        private(set) ?string $albumId, // unless the event can move it?
-        private(set) string $userId,
-        private(set) array $photoData,
-        private(set) array $albumInfo = [],
-        public array $processingContext = []
+        public private(set) ?string $albumId, // unless the event can move it?
+        public private(set) string $userId,
+        public private(set) array $photoData,
+        public private(set) array $albumInfo = [],
+        public array $processingContext = [],
     ) {
     }
 
@@ -90,9 +90,9 @@ class FlickrPhotoEvent extends Event
     {
         return $this->stopProcessing;
     }
+
     private function textValue(mixed $value): string
     {
         return (string) (is_array($value) ? ($value['_content'] ?? '') : $value);
     }
-
 }

@@ -118,7 +118,10 @@ final class UploaderTest extends TestCase
     public function testCurlTransportErrorsBecomeUploadExceptions(): void
     {
         $uploader = new class(new FlickrService('app', 'secret')) extends Uploader {
-            public function testTransport(): void { $this->postFile('unsupported-protocol://upload', []); }
+            public function testTransport(): void
+            {
+                $this->postFile('unsupported-protocol://upload', []);
+            }
         };
         $this->expectException(UploadException::class);
         $this->expectExceptionMessage('outcome may be unknown');
@@ -145,7 +148,8 @@ class RecordingUploader extends Uploader
     {
         $this->endpoint = $endpoint;
         $this->args = $args;
-        $this->calls++;
+        ++$this->calls;
+
         return [$this->body, $this->status, $this->retryAfter];
     }
 }

@@ -6,12 +6,12 @@ namespace Survos\FlickrBundle;
 
 use Survos\FlickrBundle\Services\FlickrService;
 use Survos\FlickrBundle\Twig\TwigExtension;
+use Survos\Kit\AbstractSurvosBundle;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-use Survos\Kit\AbstractSurvosBundle;
 
 // Symfony\Component\HttpKernel\Bundle\Bundle <-- Flex auto-registration marker (see Survos\Kit\AbstractSurvosBundle)
 final class SurvosFlickrBundle extends AbstractSurvosBundle
@@ -38,7 +38,6 @@ final class SurvosFlickrBundle extends AbstractSurvosBundle
             ->autowire('survos.flickr_twig', TwigExtension::class)
             ->addTag('twig.extension')
         ;
-
     }
 
     public function configure(DefinitionConfigurator $definition): void

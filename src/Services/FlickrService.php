@@ -4,30 +4,25 @@ declare(strict_types=1);
 
 namespace Survos\FlickrBundle\Services;
 
-use Survos\FlickrBundle\Util\FlickrUrl;
-
-
 use OAuth\OAuth1\Token\StdOAuth1Token;
 use Samwilson\PhpFlickr\PhpFlickr;
 use Survos\FlickrBundle\Metadata\FlickrUserInterface;
+use Survos\FlickrBundle\Util\FlickrUrl;
 use Symfony\Bundle\SecurityBundle\Security;
 
 class FlickrService extends PhpFlickr
 {
-
     public function __construct(
-        string                 $apiKey,
-        string                 $secret,
-        private ?Security      $security = null,
+        string $apiKey,
+        string $secret,
+        private ?Security $security = null,
         int|\DateInterval|null $cacheExpiration = null,
         private ?string $accessToken = null,
         private ?string $accessTokenSecret = null,
-    )
-    {
+    ) {
         parent::__construct($apiKey, $secret);
 
-
-        if ($cacheExpiration !== null) {
+        if (null !== $cacheExpiration) {
             $this->setCacheDefaultExpiry($cacheExpiration);
         }
         $this->authenticate($accessToken, $accessTokenSecret);
@@ -35,7 +30,7 @@ class FlickrService extends PhpFlickr
 
     public function authenticate(?string $key = null, ?string $secret = null): self
     {
-        if ($key === null && $secret === null) {
+        if (null === $key && null === $secret) {
             $user = $this->security?->getUser();
             if ($user instanceof FlickrUserInterface) {
                 $key = $user->getFlickrKey();
@@ -65,7 +60,7 @@ class FlickrService extends PhpFlickr
         if (isset($record['url_'.$size])) {
             return $record['url_'.$size];
         }
-        if ($size !== 'o') { // Larger sizes (h, k, ...) require their own secret; request url_h/url_k/etc.
+        if ('o' !== $size) { // Larger sizes (h, k, ...) require their own secret; request url_h/url_k/etc.
             return FlickrUrl::image($record['server'] ?? '', $record['id'] ?? '', (string) ($record['secret'] ?? ''), $size, $format);
         }
         $secret = $record['originalsecret'] ?? null;
@@ -73,15 +68,17 @@ class FlickrService extends PhpFlickr
         if (empty($record['server']) || empty($record['id']) || !$secret || !$format) {
             return null;
         }
+
         return sprintf('https://live.staticflickr.com/%s/%s_%s_o.%s', $record['server'], $record['id'], $secret, $format);
     }
 
     public function flickrPageUrl(array|object|int|string $record): ?string
     {
         if (is_object($record)) {
-            $record = (array)$record;
+            $record = (array) $record;
         }
-        $id = is_array($record) ? ($record['id']??null) : $record;
+        $id = is_array($record) ? ($record['id'] ?? null) : $record;
+
         return $id ? sprintf('https://www.flickr.com/photo.gne?id=%s', $id) : null;
     }
 
@@ -90,12 +87,8 @@ class FlickrService extends PhpFlickr
         return sprintf('https://www.flickr.com/photos/%s/albums/%s', $album['username'], $album['id']);
     }
 
-
     /**
-     * Returns a license based on string from common license agreements
-     *
-     * @param string $license
-     * @return int
+     * Returns a license based on string from common license agreements.
      */
     public function getLicenseId(string $license): int
     {
@@ -113,6 +106,7 @@ class FlickrService extends PhpFlickr
             default => 0, // assert(false, "Missing $license")
         };
         assert($license, "Missing $license");
+
         return $licenseId;
     }
 
@@ -126,12 +120,12 @@ class FlickrService extends PhpFlickr
         if (is_array($tagValue)) {
             return null;
         }
-        if (($tagValue != '')) {
+        if ('' != $tagValue) {
             // escape or remove
             return sprintf('%s=%s', $tagName, $this->quoteValue((string) $tagValue));
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     public function quoteValue(string $tagValue): string
@@ -142,8 +136,8 @@ class FlickrService extends PhpFlickr
         if (preg_match('/\\s/u', $tagValue)) {
             $tagValue = sprintf('"%s"', $tagValue);
         }
-        return $tagValue;
 
+        return $tagValue;
     }
 
     public function tagHashToString(array $tags): string
@@ -152,8 +146,8 @@ class FlickrService extends PhpFlickr
         foreach ($tags as $key => $value) {
             $parts[] = is_array($value) ? join(' ', array_map($this->quoteValue(...), $value)) : $this->tagString($key, $value);
         }
-        return join(' ', $parts);
 
+        return join(' ', $parts);
     }
 
     // this is ONLY used with a search result, which returns a compressed tag string.  photos()->getInfo() returns tags properly
@@ -172,8 +166,7 @@ class FlickrService extends PhpFlickr
         }
 
         $machineTags['_'] = join(' ', $regularTags);
+
         return $machineTags;
     }
-
-
 }

@@ -6,14 +6,13 @@ namespace Survos\FlickrBundle\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Survos\FlickrBundle\SurvosFlickrBundle;
-use Survos\FlickrBundle\Services\FlickrService;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\HttpKernel\Kernel;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\HttpKernel\Kernel;
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 final class BundleTest extends TestCase
 {

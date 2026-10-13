@@ -29,16 +29,19 @@ final class FlickrUploadFileCommand
         #[Option('Safety level: 1 safe, 2 moderate, 3 restricted')] int $safetyLevel = 1,
         #[Option('Check local inputs without contacting Flickr')] bool $dryRun = false,
     ): int {
-        if (!is_file($filename) || !is_readable($filename) || filesize($filename) === 0) {
+        if (!is_file($filename) || !is_readable($filename) || 0 === filesize($filename)) {
             $io->error('Image must be a readable, nonempty local file.');
+
             return Command::INVALID;
         }
         if (!in_array($contentType, [1, 2, 3], true) || !in_array($safetyLevel, [1, 2, 3], true)) {
             $io->error('Content type and safety level must be 1, 2, or 3.');
+
             return Command::INVALID;
         }
         if ($dryRun) {
             $io->success('Local inputs are valid. Authentication, account limits and image acceptance have not been checked.');
+
             return Command::SUCCESS;
         }
         try {
@@ -48,14 +51,17 @@ final class FlickrUploadFileCommand
                 $public, false, false, $contentType, $public ? 1 : 2,
                 safetyLevel: $safetyLevel,
             );
-            if ($result['stat'] !== 'ok') {
+            if ('ok' !== $result['stat']) {
                 $io->error(sprintf('Flickr error %s: %s', $result['code'], $result['message']));
+
                 return Command::FAILURE;
             }
             $io->success('Uploaded Flickr photo ID: '.$result['photoid']);
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $io->error($e->getMessage());
+
             return Command::FAILURE;
         }
     }

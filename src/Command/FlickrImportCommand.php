@@ -11,9 +11,9 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 #[AsCommand('survos:flickr:import', 'Import photos from a Flickr album with event dispatching')]
 class FlickrImportCommand
@@ -40,30 +40,32 @@ class FlickrImportCommand
         #[Option('Cache TTL in seconds (0 to disable cache)')]
         int $cacheTtl = 3600,
         #[Option('Clear cache before processing')]
-        bool $clearCache = false
-    ): int
-    {
+        bool $clearCache = false,
+    ): int {
         $albumId = $this->extractAlbumId($albumUrl);
         $userId = $this->extractUserIdFromUrl($albumUrl);
 
         if (!$albumId) {
             $io->error('Invalid album ID or URL provided');
+
             return Command::FAILURE;
         }
 
-        if ($perPage < 1 || $perPage > 500 || ($limit !== null && $limit < 1)) {
+        if ($perPage < 1 || $perPage > 500 || (null !== $limit && $limit < 1)) {
             $io->error('Per page must be 1–500 and limit must be positive.');
+
             return Command::INVALID;
         }
         $userId ??= ''; // Flickr accepts an album ID without an owner filter.
 
-        $io->title('Importing Flickr Album: ' . $albumId);
+        $io->title('Importing Flickr Album: '.$albumId);
         $io->writeln("User ID: {$userId}");
         $io->writeln("Info Level: {$infoLevel}");
-        $io->writeln("Cache TTL: " . ($cacheTtl > 0 ? "{$cacheTtl}s" : "disabled"));
+        $io->writeln('Cache TTL: '.($cacheTtl > 0 ? "{$cacheTtl}s" : 'disabled'));
 
         if (!in_array($infoLevel, ['basic', 'detailed', 'full'])) {
             $io->error('Info level must be one of: basic, detailed, full');
+
             return Command::FAILURE;
         }
 
@@ -82,7 +84,7 @@ class FlickrImportCommand
                 ['Title', $this->textValue($albumInfo['title'] ?? '')],
                 ['Description', $this->textValue($albumInfo['description'] ?? '')],
                 ['Total Photos', $albumInfo['photos']],
-                ['Owner', $albumInfo['owner']]
+                ['Owner', $albumInfo['owner']],
             ]);
 
             // Process photos with event dispatching
@@ -96,9 +98,9 @@ class FlickrImportCommand
             ));
 
             return Command::SUCCESS;
-
         } catch (\Exception $e) {
-            $io->error('Error importing album: ' . $e->getMessage());
+            $io->error('Error importing album: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }
@@ -113,6 +115,7 @@ class FlickrImportCommand
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($albumId, $userId, $cacheTtl) {
             $item->expiresAfter($cacheTtl);
+
             return $this->requireResponse($this->flickrService->photosets()->getInfo($albumId, $userId));
         });
     }
@@ -124,21 +127,21 @@ class FlickrImportCommand
         }
 
         $cacheKey = $this->cacheKey('photo_info',
-            photoId: $photoId,userId: $userId);
+            photoId: $photoId, userId: $userId);
 
         return $this->cache->get($cacheKey, function (ItemInterface $item) use ($photoId, $cacheTtl) {
             $item->expiresAfter($cacheTtl);
+
             return $this->requireResponse($this->flickrService->photos()->getInfo($photoId));
         });
     }
 
     private function cacheKey(string $type,
-                              ?string $photoId = null,
-                              ?string $userId = null,
-                              ?string $albumId = null,
-    ?array $params = null,
-    ): string
-    {
+        ?string $photoId = null,
+        ?string $userId = null,
+        ?string $albumId = null,
+        ?array $params = null,
+    ): string {
         return hash('xxh3',
             serialize([$this->cacheAccount(), $type, $photoId, $userId, $albumId, $params]));
     }
@@ -152,7 +155,7 @@ class FlickrImportCommand
         ?int $limit,
         int $cacheTtl,
         SymfonyStyle $io,
-        array $albumInfo
+        array $albumInfo,
     ): array {
         $eventsDispatched = 0;
         $page = 1;
@@ -162,21 +165,21 @@ class FlickrImportCommand
 
         $io->section('Processing Photos');
         $io->progressStart();
-        $page      = 1;
+        $page = 1;
         $processed = 0;
 
         do {
             $params = [
-                'page'     => $page,
+                'page' => $page,
                 'per_page' => $perPage,
-                'extras'   => $this->getExtrasForInfoLevel($infoLevel),
+                'extras' => $this->getExtrasForInfoLevel($infoLevel),
             ];
 
             $response = $this->getCachedPhotos($albumId, $userId, $params, $cacheTtl);
 
-            $totalPages  = isset($response['pages']) ? (int)$response['pages'] : 1;
-            $totalPhotos = isset($response['total']) ? (int)$response['total'] : 0;
-            $photos      = $response['photo'] ?? [];
+            $totalPages = isset($response['pages']) ? (int) $response['pages'] : 1;
+            $totalPhotos = isset($response['total']) ? (int) $response['total'] : 0;
+            $photos = $response['photo'] ?? [];
 
             if (!$photos) {
                 // Defensive: if the API/state says there are pages but this one is empty, stop to avoid an infinite loop.
@@ -185,7 +188,7 @@ class FlickrImportCommand
             }
 
             foreach ($photos as $photo) {
-                $processed++;
+                ++$processed;
 
                 $io->writeln(sprintf(
                     'Processing photo %d/%d (Page %d): %s',
@@ -203,16 +206,16 @@ class FlickrImportCommand
                     photoData: $photoData,
                     albumInfo: $albumInfo,
                     processingContext: [
-                        'page'          => $page,
-                        'photo_number'  => $processed,
-                        'total_photos'  => $totalPhotos,
-                        'info_level'    => $infoLevel,
+                        'page' => $page,
+                        'photo_number' => $processed,
+                        'total_photos' => $totalPhotos,
+                        'info_level' => $infoLevel,
                     ]
                 );
 
                 if (!$dryRun) {
                     $this->eventDispatcher->dispatch($event, FlickrPhotoEvent::class);
-                    $eventsDispatched++;
+                    ++$eventsDispatched;
                     if ($event->shouldStopProcessing()) {
                         $io->writeln('Processing stopped by event listener');
                         break 2;
@@ -233,26 +236,26 @@ class FlickrImportCommand
                 $io->progressAdvance(1);
             }
 
-            $page++;
+            ++$page;
         } while ($page <= $totalPages);
 
         $io->progressFinish();
 
         // Show cache statistics
         if ($this->cache && $cacheTtl > 0) {
-//            $io->writeln(sprintf(
-//                'Cache performance: %d hits, %d misses (%.1f%% hit rate)',
-//                $cacheHits,
-//                $cacheMisses,
-//                $cacheMisses > 0 ? ($cacheHits / ($cacheHits + $cacheMisses)) * 100 : 100
-//            ));
+            //            $io->writeln(sprintf(
+            //                'Cache performance: %d hits, %d misses (%.1f%% hit rate)',
+            //                $cacheHits,
+            //                $cacheMisses,
+            //                $cacheMisses > 0 ? ($cacheHits / ($cacheHits + $cacheMisses)) * 100 : 100
+            //            ));
         }
 
         return [
             'processed' => $processed,
             'events_dispatched' => $eventsDispatched,
             'cache_hits' => $cacheHits,
-            'cache_misses' => $cacheMisses
+            'cache_misses' => $cacheMisses,
         ];
     }
 
@@ -260,7 +263,7 @@ class FlickrImportCommand
     {
         $photoData = $photo;
 
-        if ($infoLevel === 'basic') {
+        if ('basic' === $infoLevel) {
             // Just return what we have from the photoset list
             return $photoData;
         }
@@ -272,7 +275,7 @@ class FlickrImportCommand
             $photoData[$field] = $this->textValue($photoData[$field] ?? '');
         }
 
-        if ($infoLevel === 'full') {
+        if ('full' === $infoLevel) {
             // Add current image URLs for different sizes
             $photoData['direct_urls'] = $this->buildDirectUrls($photoData);
 
@@ -291,16 +294,17 @@ class FlickrImportCommand
                 $urls[$name] = $url;
             }
         }
+
         return $urls;
     }
 
     private function getExtrasForInfoLevel(string $infoLevel): string
     {
-        return match($infoLevel) {
+        return match ($infoLevel) {
             'basic' => 'description,tags',
             'detailed' => 'description,url_m,url_l,url_o,tags,machine_tags,date_taken,owner_name',
             'full' => 'description,url_m,url_l,url_o,url_h,url_k,tags,machine_tags,date_taken,owner_name,geo,path_alias,views',
-            default => throw new \InvalidArgumentException("Invalid info level: {$infoLevel}")
+            default => throw new \InvalidArgumentException("Invalid info level: {$infoLevel}"),
         };
     }
 
@@ -311,11 +315,11 @@ class FlickrImportCommand
 
         $description = $this->textValue($photoData['description'] ?? '');
         if ($description) {
-            $io->writeln("  → Description: " . substr($description, 0, 100) . (strlen($description) > 100 ? '...' : ''));
+            $io->writeln('  → Description: '.substr($description, 0, 100).(strlen($description) > 100 ? '...' : ''));
         }
 
         if (isset($photoData['direct_urls'])) {
-            $io->writeln("  → Direct URLs available: " . implode(', ', array_keys($photoData['direct_urls'])));
+            $io->writeln('  → Direct URLs available: '.implode(', ', array_keys($photoData['direct_urls'])));
         }
     }
 
@@ -340,6 +344,7 @@ class FlickrImportCommand
 
         return null;
     }
+
     private function normalizeParams(array $params): array
     {
         // ensure deterministic order for nested arrays like 'extras'
@@ -350,18 +355,20 @@ class FlickrImportCommand
         if (isset($params['extras']) && is_array($params['extras'])) {
             sort($params['extras']); // order-insensitive
         }
+
         return $params;
     }
 
     private function buildCacheKey(string $prefix, string $albumId, string $userId, array $params): string
     {
         $params = $this->normalizeParams($params);
+
         return hash('sha256', $this->cacheAccount().sprintf(
             '%s:%s:%s:%s',
             $prefix,
             $albumId,
             $userId,
-            json_encode($params, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE))
+            json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE))
         );
     }
 
@@ -369,7 +376,7 @@ class FlickrImportCommand
         string $albumId,
         string $userId,
         array $params,
-        int $cacheTtl
+        int $cacheTtl,
     ): array {
         if (!$this->cache || $cacheTtl <= 0) {
             return $this->requireResponse($this->flickrService->photosets()->getPhotos($albumId, $userId, explode(',', $params['extras']),
@@ -382,21 +389,23 @@ class FlickrImportCommand
 
         $items = $this->cache->get($cacheKey, function (ItemInterface $item) use ($albumId, $userId, $params, $cacheTtl) {
             $item->expiresAfter($cacheTtl);
+
             return $this->requireResponse($this->flickrService->photosets()->getPhotos($albumId, $userId,
                 extras: explode(',', $params['extras']),
                 perPage: $params['per_page'],
                 page: $params['page']
             ));
-
         });
+
         return $items;
     }
 
     private function requireResponse(array|false $response): array
     {
-        if ($response === false) {
+        if (false === $response) {
             throw new \Samwilson\PhpFlickr\FlickrException('Flickr returned no usable response. Check authentication, album ID and API availability.');
         }
+
         return $response;
     }
 
@@ -409,5 +418,4 @@ class FlickrImportCommand
     {
         return hash('sha256', serialize($this->flickrService->getOauthTokenStorage()->retrieveAccessToken('Flickr')->getAccessToken()));
     }
-
 }

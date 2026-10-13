@@ -26,7 +26,7 @@ final class FlickrUrl
     /** @return array{server:string,id:string,secret:string,size:string,format:string}|null */
     public static function parse(string $url): ?array
     {
-        if (preg_match(self::STATIC, trim($url), $m) !== 1) {
+        if (1 !== preg_match(self::STATIC, trim($url), $m)) {
             return null;
         }
 
@@ -35,11 +35,11 @@ final class FlickrUrl
 
     public static function image(string|int $server, string|int $id, string $secret, string $size = 'm', string $format = 'jpg'): ?string
     {
-        if (!in_array($size, self::SIZES, true) || $server === '' || $id === '' || $secret === '') {
+        if (!in_array($size, self::SIZES, true) || '' === $server || '' === $id || '' === $secret) {
             return null;
         }
 
-        return sprintf('https://live.staticflickr.com/%s/%s_%s%s.%s', $server, $id, $secret, $size === '' ? '' : '_' . $size, $format);
+        return sprintf('https://live.staticflickr.com/%s/%s_%s%s.%s', $server, $id, $secret, '' === $size ? '' : '_'.$size, $format);
     }
 
     /** Another size of the photo a static URL shows, or null when the URL is not a Flickr static URL. */
@@ -47,12 +47,12 @@ final class FlickrUrl
     {
         $p = self::parse($url);
 
-        return $p === null ? null : self::image($p['server'], $p['id'], $p['secret'], $size, $p['format']);
+        return null === $p ? null : self::image($p['server'], $p['id'], $p['secret'], $size, $p['format']);
     }
 
     public static function page(string|int $id, ?string $owner = null): string
     {
-        return $owner !== null && $owner !== ''
+        return null !== $owner && '' !== $owner
             ? sprintf('https://www.flickr.com/photos/%s/%s', $owner, $id)
             : sprintf('https://www.flickr.com/photo.gne?id=%s', $id);
     }

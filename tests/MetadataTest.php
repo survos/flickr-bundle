@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace Survos\FlickrBundle\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Survos\FlickrBundle\Event\FlickrPhotoEvent;
 use Survos\FlickrBundle\Metadata\FlickrUserInterface;
 use Survos\FlickrBundle\Metadata\FlickrUserTrait;
-use Survos\FlickrBundle\Event\FlickrPhotoEvent;
 
 final class MetadataTest extends TestCase
 {
     public function testUserTraitAndNullableAlbum(): void
     {
-        $user = new class implements FlickrUserInterface { use FlickrUserTrait; };
+        $user = new class implements FlickrUserInterface {
+            use FlickrUserTrait;
+        };
         self::assertNull($user->getFlickrKey());
         self::assertSame($user, $user->setFlickrKey('key')->setFlickrSecret('secret'));
         self::assertSame('key', $user->getFlickrKey());

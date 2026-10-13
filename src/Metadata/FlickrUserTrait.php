@@ -8,7 +8,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 trait FlickrUserTrait
 {
-
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $flickrUserId = null; // e.g. "26016159@N00"
 
@@ -25,7 +24,6 @@ trait FlickrUserTrait
     {
         return $this->flickrSecret;
     }
-
 
     public function getFlickrKey(): ?string
     {
@@ -54,9 +52,9 @@ trait FlickrUserTrait
     public function setFlickrUserId(?string $flickrUserId): static
     {
         $this->flickrUserId = $flickrUserId;
+
         return $this;
     }
-
 
     public function getFlickrUsername(): ?string
     {
@@ -66,9 +64,7 @@ trait FlickrUserTrait
     public function setFlickrUsername(?string $flickrUsername): static
     {
         $this->flickrUsername = $flickrUsername;
+
         return $this;
     }
-
-
-
 }

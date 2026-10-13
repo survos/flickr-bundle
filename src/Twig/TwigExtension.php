@@ -11,7 +11,7 @@ use Twig\TwigFunction;
 
 class TwigExtension extends AbstractExtension
 {
-    public function __construct(private ?FlickrService $flickrService=null)
+    public function __construct(private ?FlickrService $flickrService = null)
     {
     }
 
@@ -36,7 +36,4 @@ class TwigExtension extends AbstractExtension
             //            new TwigFunction('function_name', [::class, 'doSomething']),
         ];
     }
-
-
-
 }

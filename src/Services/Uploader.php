@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Survos\FlickrBundle\Services;
 
-use OAuth\Common\Exception\Exception as OauthException;
 use OAuth\Common\Exception\Exception;
+use OAuth\Common\Exception\Exception as OauthException;
 use Samwilson\PhpFlickr\FlickrException;
+
 class Uploader extends \Samwilson\PhpFlickr\Uploader
 {
-
     protected $response;
     /** @var string */
     protected $uploadEndpoint = 'https://up.flickr.com/services/upload/';
@@ -27,24 +27,27 @@ class Uploader extends \Samwilson\PhpFlickr\Uploader
 
     /**
      * Upload a photo.
-     * @link https://www.flickr.com/services/api/upload.api.html
-     * @param string $photoFilename Full filesystem path to the photo to upload.
-     * @param string|null $title The title of the photo.
-     * @param string|null $description A description of the photo. May contain some limited HTML.
-     * @param string|null $tags A space-seperated list of tags to apply to the photo.
-     * @param bool|null $isPublic Specifies who can view the photo. If omitted permissions will
-     * be set to user's default.
-     * @param bool|null $isFriend Specifies who can view the photo. If omitted permissions will
-     * be set to user's default.
-     * @param bool|null $isFamily Specifies who can view the photo. If omitted permissions will
-     * be set to user's default.
-     * @param int|null $contentType Set to 1 for Photo, 2 for Screenshot, or 3 for Other. If
-     * omitted , will be set to user's default.
-     * @param int|null $hidden Set to 1 to keep the photo in global search results, 2 to hide from
-     * public searches. If omitted, will be set based to user's default.
-     * @param bool $async Whether to upload the file asynchronously (in which case a 'ticketid'
-     * will be returned).
-     * @param int|null $safetyLevel 1 for Safe, 2 for Moderate, 3 for Restricted.
+     *
+     * @see https://www.flickr.com/services/api/upload.api.html
+     *
+     * @param string      $photoFilename full filesystem path to the photo to upload
+     * @param string|null $title         the title of the photo
+     * @param string|null $description   A description of the photo. May contain some limited HTML.
+     * @param string|null $tags          a space-seperated list of tags to apply to the photo
+     * @param bool|null   $isPublic      Specifies who can view the photo. If omitted permissions will
+     *                                   be set to user's default.
+     * @param bool|null   $isFriend      Specifies who can view the photo. If omitted permissions will
+     *                                   be set to user's default.
+     * @param bool|null   $isFamily      Specifies who can view the photo. If omitted permissions will
+     *                                   be set to user's default.
+     * @param int|null    $contentType   Set to 1 for Photo, 2 for Screenshot, or 3 for Other. If
+     *                                   omitted , will be set to user's default.
+     * @param int|null    $hidden        Set to 1 to keep the photo in global search results, 2 to hide from
+     *                                   public searches. If omitted, will be set based to user's default.
+     * @param bool        $async         whether to upload the file asynchronously (in which case a 'ticketid'
+     *                                   will be returned)
+     * @param int|null    $safetyLevel   1 for Safe, 2 for Moderate, 3 for Restricted
+     *
      * @return array<string, int|string>
      */
     public function upload(
@@ -58,7 +61,7 @@ class Uploader extends \Samwilson\PhpFlickr\Uploader
         $contentType = null,
         $hidden = null,
         $async = false,
-        $safetyLevel = null
+        $safetyLevel = null,
     ) {
         $params = [
             'title' => $title,
@@ -74,16 +77,19 @@ class Uploader extends \Samwilson\PhpFlickr\Uploader
         if ($async) {
             $params['async'] = 1;
         }
+
         return $this->sendFile($photoFilename, $params);
     }
 
     /**
-     * @link https://www.flickr.com/services/api/replace.api.html
-     * @param string $photoFilename Full filesystem path to the file to upload.
-     * @param int|string $photoId The ID of the photo to replace.
-     * @param bool $async Photos may be replaced in async mode, for applications that don't want to
-     * wait around for an upload to complete, leaving a socket connection open the whole time.
-     * Processing photos asynchronously is recommended.
+     * @see https://www.flickr.com/services/api/replace.api.html
+     *
+     * @param string     $photoFilename full filesystem path to the file to upload
+     * @param int|string $photoId       the ID of the photo to replace
+     * @param bool       $async         Photos may be replaced in async mode, for applications that don't want to
+     *                                  wait around for an upload to complete, leaving a socket connection open the whole time.
+     *                                  Processing photos asynchronously is recommended.
+     *
      * @return array<string, int|string>
      */
     public function replace($photoFilename, $photoId, $async = null)
@@ -91,22 +97,25 @@ class Uploader extends \Samwilson\PhpFlickr\Uploader
         if (!preg_match('/^[0-9]+$/', (string) $photoId)) {
             throw new \InvalidArgumentException('A numeric Flickr photo ID is required.');
         }
+
         return $this->sendFile($photoFilename, ['photo_id' => $photoId, 'async' => $async]);
     }
 
     /**
      * @param string $filename
-     * @param array $params
+     * @param array  $params
+     *
      * @return array
-     * @throws Exception If an OAuth error occurs.
-     * @throws FlickrException If the file can't be read.
+     *
+     * @throws Exception       if an OAuth error occurs
+     * @throws FlickrException if the file can't be read
      */
     public function sendFile($filename, $params)
     {
-        if (!is_file($filename) || !is_readable($filename) || filesize($filename) === 0) {
+        if (!is_file($filename) || !is_readable($filename) || 0 === filesize($filename)) {
             throw new FlickrException("File must be a readable, nonempty local file: $filename");
         }
-        $params = array_filter($params, static fn ($value) => $value !== null);
+        $params = array_filter($params, static fn ($value) => null !== $value);
         foreach (['content_type' => [1, 2, 3], 'safety_level' => [1, 2, 3], 'hidden' => [1, 2],
             'is_public' => [0, 1, false, true], 'is_friend' => [0, 1, false, true],
             'is_family' => [0, 1, false, true], 'async' => [0, 1, false, true]] as $name => $values) {
@@ -126,9 +135,9 @@ class Uploader extends \Samwilson\PhpFlickr\Uploader
         [$response, $status, $retryAfter] = $this->postFile($endpoint, $args);
         $this->response = $response;
         if ($status < 200 || $status >= 300) {
-            throw new \Survos\FlickrBundle\Exception\UploadException(
-                "Flickr upload returned HTTP $status. Reconcile the upload before retrying.", $status, $retryAfter);
+            throw new \Survos\FlickrBundle\Exception\UploadException("Flickr upload returned HTTP $status. Reconcile the upload before retrying.", $status, $retryAfter);
         }
+
         return $this->parseResponse($response);
     }
 
@@ -145,18 +154,19 @@ class Uploader extends \Samwilson\PhpFlickr\Uploader
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_HEADERFUNCTION => static function ($handle, string $header) use (&$retryAfter): int {
-                if (stripos($header, 'Retry-After:') === 0) {
+                if (0 === stripos($header, 'Retry-After:')) {
                     $retryAfter = trim(substr($header, 12));
                 }
+
                 return strlen($header);
             },
         ]);
         $response = curl_exec($curl);
         $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        if ($response === false) {
-            throw new \Survos\FlickrBundle\Exception\UploadException(
-                'Flickr upload transport failed (cURL '.curl_errno($curl).'). The outcome may be unknown; reconcile before retrying.');
+        if (false === $response) {
+            throw new \Survos\FlickrBundle\Exception\UploadException('Flickr upload transport failed (cURL '.curl_errno($curl).'). The outcome may be unknown; reconcile before retrying.');
         }
+
         // PHP 8.5 releases CurlHandle automatically; curl_close() is deprecated.
         return [(string) $response, $status, $retryAfter];
     }
@@ -169,21 +179,22 @@ class Uploader extends \Samwilson\PhpFlickr\Uploader
         }
         $previous = libxml_use_internal_errors(true);
         try {
-            if (stripos($response, '<!DOCTYPE') !== false) {
+            if (false !== stripos($response, '<!DOCTYPE')) {
                 throw new FlickrException('Unexpected Flickr XML document type.');
             }
             $xml = simplexml_load_string($response, \SimpleXMLElement::class, LIBXML_NONET);
-            if ($xml === false || $xml->getName() !== 'rsp' || !in_array((string) $xml['stat'], ['ok', 'fail'], true)) {
+            if (false === $xml || 'rsp' !== $xml->getName() || !in_array((string) $xml['stat'], ['ok', 'fail'], true)) {
                 throw new FlickrException('Invalid Flickr upload response; reconcile before retrying.');
             }
             $result = ['stat' => (string) $xml['stat']];
-            if ($result['stat'] === 'fail') {
+            if ('fail' === $result['stat']) {
                 if (!isset($xml->err)) {
                     throw new FlickrException('Flickr failure response is missing its error details.');
                 }
                 // Preserve the existing API error-array contract for callers.
                 $result['code'] = (int) $xml->err['code'];
                 $result['message'] = (string) $xml->err['msg'];
+
                 return $result;
             }
             if (isset($xml->photoid) && preg_match('/^[0-9]+$/', (string) $xml->photoid)) {
@@ -193,11 +204,12 @@ class Uploader extends \Samwilson\PhpFlickr\Uploader
                         $result[$key] = (string) $xml->photoid[$key];
                     }
                 }
-            } elseif (isset($xml->ticketid) && (string) $xml->ticketid !== '') {
+            } elseif (isset($xml->ticketid) && '' !== (string) $xml->ticketid) {
                 $result['ticketid'] = (string) $xml->ticketid;
             } else {
                 throw new FlickrException('Flickr upload response is missing a photo ID or ticket ID.');
             }
+
             return $result;
         } finally {
             libxml_clear_errors();

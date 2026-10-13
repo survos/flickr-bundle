@@ -20,9 +20,11 @@ final class ImportCommandTest extends TestCase
     {
         $flickr = new class('app', 'secret') extends FlickrService {
             public array $calls = [];
+
             public function request($command, $args = [], $nocache = false): array
             {
                 $this->calls[] = [$command, $args];
+
                 return match ($command) {
                     'flickr.photosets.getInfo' => ['photoset' => ['title' => ['_content' => 'Newspapers'], 'description' => ['_content' => 'Archive'], 'photos' => 2, 'owner' => 'owner']],
                     'flickr.photosets.getPhotos' => ['photoset' => ['pages' => 2, 'total' => 2, 'photo' => [['id' => (string) $args['page'], 'title' => 'Ad']]]],
@@ -50,11 +52,11 @@ final class ImportCommandTest extends TestCase
         self::assertSame(0, $command($io, '123', perPage: 1));
         self::assertGreaterThan($requests, count($flickr->calls));
         foreach ($flickr->calls as [$method, $args]) {
-            if ($method === 'flickr.photosets.getPhotos') {
+            if ('flickr.photosets.getPhotos' === $method) {
                 self::assertStringContainsString('machine_tags', $args['extras']);
                 self::assertSame(1, $args['per_page']);
             }
-            if ($method === 'flickr.photos.getInfo') {
+            if ('flickr.photos.getInfo' === $method) {
                 self::assertNull($args['secret']);
             }
         }
@@ -63,7 +65,10 @@ final class ImportCommandTest extends TestCase
     public function testMissingApiResponseReturnsFailure(): void
     {
         $flickr = new class('app', 'secret') extends FlickrService {
-            public function request($command, $args = [], $nocache = false): array { return []; }
+            public function request($command, $args = [], $nocache = false): array
+            {
+                return [];
+            }
         };
         $command = new FlickrImportCommand($flickr, new EventDispatcher());
         self::assertSame(1, $command(new SymfonyStyle(new ArrayInput([]), new BufferedOutput()), '123'));
